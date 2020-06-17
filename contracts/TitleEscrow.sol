@@ -4,6 +4,8 @@ import "./ERC721.sol";
 import "./ITitleEscrow.sol";
 import "./ITitleEscrowCreator.sol";
 
+import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
+
 contract HasNamedBeneficiary is Context {
   address public beneficiary;
 
@@ -46,7 +48,7 @@ contract HasHolder is Context {
   }
 }
 
-contract TitleEscrow is Context, ITitleEscrow, HasNamedBeneficiary, HasHolder, ERC165 {
+contract TitleEscrow is BaseRelayRecipient, Context, ITitleEscrow, HasNamedBeneficiary, HasHolder, ERC165  {
   event TitleReceived(address indexed _tokenRegistry, address indexed _from, uint256 indexed _id);
   event TitleCeded(address indexed _tokenRegistry, address indexed _to, uint256 indexed _id);
   event TransferOwnerApproval(uint256 indexed _tokenid, address indexed _from, address indexed _to);
@@ -73,13 +75,14 @@ contract TitleEscrow is Context, ITitleEscrow, HasNamedBeneficiary, HasHolder, E
   address public approvedOwner;
 
   //TODO: change ERC721 to address so that external contracts don't need to import ERC721 to use this
-  constructor(ERC721 _tokenRegistry, address _beneficiary, address _holder, address _titleEscrowFactoryAddress)
+  constructor(ERC721 _tokenRegistry, address _beneficiary, address _holder, address _titleEscrowFactoryAddress, address _trustedForwarder)
     public
     HasNamedBeneficiary(_beneficiary)
     HasHolder(_holder)
   {
     tokenRegistry = ERC721(_tokenRegistry);
     titleEscrowFactory = ITitleEscrowCreator(_titleEscrowFactoryAddress);
+    trustedForwarder = _trustedForwarder;
     _registerInterface(_INTERFACE_ID_TITLEESCROW);
   }
 
